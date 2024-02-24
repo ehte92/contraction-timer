@@ -1,17 +1,6 @@
 import { useEffect, useState } from "react";
 import Layout from "./layout/Layout";
 
-// Dummy data for the timeline
-const contractions = [
-  { time: "12:00 PM", duration: "45 seconds" },
-  { time: "12:30 PM", duration: "30 seconds" },
-  { time: "01:15 PM", duration: "60 seconds" },
-  { time: "02:00 PM", duration: "45 seconds" },
-  { time: "02:30 PM", duration: "30 seconds" },
-  { time: "03:15 PM", duration: "60 seconds" },
-  // Add more events as needed
-];
-
 interface Timer {
   hours: number;
   minutes: number;
@@ -26,6 +15,12 @@ function App() {
   });
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [startTime, setStartTime] = useState<number | null>(null);
+  const [contractions, setContractions] = useState<
+    { time: string; duration: string }[]
+  >([]);
+  const [currentContractionStart, setCurrentContractionStart] = useState<
+    number | null
+  >(null);
 
   useEffect(() => {
     let interval: number | undefined = undefined;
@@ -54,10 +49,30 @@ function App() {
   const startTimer = () => {
     setStartTime(Date.now());
     setIsRunning(true);
+    setCurrentContractionStart(Date.now());
   };
 
   const stopTimer = () => {
-    setIsRunning(false);
+    if (currentContractionStart) {
+      const endTime = Date.now();
+      const duration = endTime - currentContractionStart; // Calculate duration in milliseconds
+      const durationSeconds = Math.floor(duration / 1000); // Convert duration to seconds
+      const startTimeFormatted = new Date(
+        currentContractionStart
+      ).toLocaleTimeString();
+      const durationFormatted = `${Math.floor(durationSeconds / 60)} minutes ${
+        durationSeconds % 60
+      } seconds`;
+
+      // Add the new contraction log
+      setContractions((prevContractions) => [
+        { time: startTimeFormatted, duration: durationFormatted },
+        ...prevContractions,
+      ]);
+
+      setIsRunning(false);
+      setCurrentContractionStart(null); // Reset the start time
+    }
   };
 
   // Function to format time values for display
@@ -105,11 +120,19 @@ function App() {
         <div className="flex justify-center items-center mt-4">
           <div className="flex justify-between space-x-2 w-full">
             {/* Start button */}
-            <button className="btn btn-primary w-1/2" onClick={startTimer}>
+            <button
+              className="btn btn-primary w-1/2"
+              onClick={startTimer}
+              disabled={isRunning}
+            >
               Start
             </button>
             {/* Stop button */}
-            <button className="btn btn-secondary w-1/2" onClick={stopTimer}>
+            <button
+              className="btn btn-secondary w-1/2"
+              onClick={stopTimer}
+              disabled={!isRunning}
+            >
               Stop
             </button>
           </div>
@@ -149,37 +172,39 @@ function App() {
         {/* Info */}
 
         {/* Timeline */}
-        <div className="mt-4 h-96 overflow-auto">
-          <ul className="timeline timeline-snap-icon max-md:timeline-compact timeline-vertical">
-            {contractions.map((contraction, index) => (
-              <li key={index} className="timeline-item">
-                <div className="timeline-middle">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    className="w-5 h-5"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <div className="timeline-end timeline-box">
-                  <time className="text-sm text-secondary">
-                    {contraction.time}
-                  </time>
-                  <p className="text-md font-semibold text-primary">
-                    {contraction.duration}
-                  </p>
-                </div>
-                {index !== contractions.length - 1 && <hr />}
-              </li>
-            ))}
-          </ul>
-        </div>
+        {contractions.length > 0 && (
+          <div className="mt-4 h-96 overflow-auto">
+            <ul className="timeline timeline-snap-icon max-md:timeline-compact timeline-vertical">
+              {contractions.map((contraction, index) => (
+                <li key={index} className="timeline-item">
+                  <div className="timeline-middle">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      className="w-5 h-5"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div className="timeline-end timeline-box">
+                    <time className="text-sm text-secondary">
+                      {contraction.time}
+                    </time>
+                    <p className="text-md font-semibold text-primary">
+                      {contraction.duration}
+                    </p>
+                  </div>
+                  {index !== contractions.length - 1 && <hr />}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         {/* Timeline */}
       </div>
     </Layout>
