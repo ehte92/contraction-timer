@@ -7,6 +7,11 @@ interface Timer {
   seconds: number;
 }
 
+interface Contraction {
+  time: string;
+  duration: string;
+}
+
 function App() {
   const [timer, setTimer] = useState<Timer>({
     hours: 0,
@@ -15,9 +20,7 @@ function App() {
   });
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [startTime, setStartTime] = useState<number | null>(null);
-  const [contractions, setContractions] = useState<
-    { time: string; duration: string }[]
-  >([]);
+  const [contractions, setContractions] = useState<Contraction[]>([]);
   const [currentContractionStart, setCurrentContractionStart] = useState<
     number | null
   >(null);
@@ -79,6 +82,57 @@ function App() {
   const formatTime = (value: number): string => {
     return value.toString().padStart(2, "0");
   };
+
+  // Calculate number of contractions in the last hour
+  const contractionsLastHour = contractions.filter((contraction) => {
+    const currentTime = Date.now();
+    const contractionTime = new Date();
+    const [hours, minutes, seconds] = contraction.time.split(":").map(Number);
+    contractionTime.setHours(hours);
+    contractionTime.setMinutes(minutes);
+    contractionTime.setSeconds(seconds);
+    return currentTime - contractionTime.getTime() < 3600000; // 1000 * 60 * 60 milliseconds = 1 hour
+  });
+
+  // Calculate average duration of contractions
+  const averageDuration =
+    contractions.reduce((total, contraction) => {
+      const durationParts = contraction.duration.split(" ");
+      const durationMinutes = parseInt(durationParts[0]);
+      const durationSeconds = parseInt(durationParts[2]);
+      return total + (durationMinutes * 60 + durationSeconds);
+    }, 0) / contractions.length;
+
+  // Format average duration for display
+  const formatAverageDuration = (duration: number): string => {
+    const minutes = Math.floor(duration / 60);
+    const seconds = Math.floor(duration % 60);
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
+
+  const calculateAverageFrequency = () => {
+    if (contractions.length <= 1) {
+      return 0; // Return 0 if there's only one or no contractions
+    }
+
+    const timeDifferences = contractions.slice(1).map((contraction, index) => {
+      const currentTime = new Date(contraction.time).getTime();
+      const previousTime = new Date(contractions[index].time).getTime();
+      return currentTime - previousTime;
+    });
+
+    const averageTimeDifference =
+      timeDifferences.reduce((acc, cur) => acc + cur, 0) /
+      timeDifferences.length;
+
+    // Convert milliseconds to hours for frequency
+    const averageFrequency = (3600000 / averageTimeDifference).toFixed(2);
+
+    return averageFrequency;
+  };
+
+  // Then use this function to set the averageFrequency
+  const averageFrequency = calculateAverageFrequency();
 
   return (
     <Layout>
@@ -148,7 +202,9 @@ function App() {
                 <div className="text-md font-semibold text-primary">
                   Past Hour
                 </div>
-                <div className="text-sm text-secondary">0 Contractions</div>
+                <div className="text-sm text-secondary">
+                  {contractionsLastHour.length} Contractions
+                </div>
               </div>
 
               {/* Item 2: Avg Duration */}
@@ -156,7 +212,9 @@ function App() {
                 <div className="text-md font-semibold text-primary">
                   Avg Duration
                 </div>
-                <div className="text-sm text-secondary">0:00</div>
+                <div className="text-sm text-secondary">
+                  {formatAverageDuration(averageDuration)}
+                </div>
               </div>
 
               {/* Item 3: Avg Frequency */}
@@ -164,7 +222,11 @@ function App() {
                 <div className="text-md font-semibold text-primary">
                   Avg Freq
                 </div>
-                <div className="text-sm text-secondary">0:00</div>
+                <div className="text-sm text-secondary">
+                  {typeof averageFrequency === "number" && averageFrequency > 0
+                    ? `${averageFrequency} per hour`
+                    : "-"}
+                </div>
               </div>
             </div>
           </div>
