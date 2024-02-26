@@ -50,7 +50,7 @@ const BottomNav = () => {
         </svg>
         <span className="btm-nav-label">Timeline</span>
       </button>
-      <button>
+      <button disabled>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -67,7 +67,10 @@ const BottomNav = () => {
         </svg>
         <span className="btm-nav-label">Kick Counter</span>
       </button>
-      <button>
+      <button
+        className={`${isActive("/hospital-bag")}`}
+        onClick={() => navigate({ to: "/hospital-bag" })}
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
