@@ -9,8 +9,9 @@ function Settings() {
   const { clearContractions } = useStore();
   return (
     <div className="container mx-auto px-4">
+      <h1 className="text-2xl font-bold">Settings</h1>
       <div
-        className="flex flex-row justify-between bg-gray-700 p-4 rounded-lg shadow-md"
+        className="flex flex-row justify-between bg-gray-700 p-4 rounded-lg shadow-md mt-4"
         onClick={clearContractions}
       >
         <p className="text-red-500">Delete all contractions</p>
