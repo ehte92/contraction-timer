@@ -1,12 +1,42 @@
+import { useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
+
 const TopBar = () => {
+  const navigate = useNavigate();
+  const routerState = useRouterState();
+  const router = useRouter();
   return (
     <div className="navbar bg-base-100 sticky top-0 z-50">
-      <div className="navbar-start"></div>
+      <div className="navbar-start">
+        {routerState.location.pathname !== "/" && (
+          <button
+            className="btn btn-ghost btn-circle"
+            onClick={() => router.history.back()}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-6 h-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+        )}
+      </div>
       <div className="navbar-center">
         <a className="btn btn-ghost text-xl">Contractions</a>
       </div>
       <div className="navbar-end">
-        <button className="btn btn-ghost btn-circle">
+        <button
+          className="btn btn-ghost btn-circle"
+          onClick={() => navigate({ to: "/settings" })}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
