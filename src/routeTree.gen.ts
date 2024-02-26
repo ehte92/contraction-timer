@@ -18,6 +18,7 @@ import { Route as rootRoute } from './routes/__root'
 
 const TimelineLazyImport = createFileRoute('/timeline')()
 const SettingsLazyImport = createFileRoute('/settings')()
+const HospitalBagLazyImport = createFileRoute('/hospital-bag')()
 const AboutLazyImport = createFileRoute('/about')()
 const IndexLazyImport = createFileRoute('/')()
 
@@ -32,6 +33,11 @@ const SettingsLazyRoute = SettingsLazyImport.update({
   path: '/settings',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/settings.lazy').then((d) => d.Route))
+
+const HospitalBagLazyRoute = HospitalBagLazyImport.update({
+  path: '/hospital-bag',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/hospital-bag.lazy').then((d) => d.Route))
 
 const AboutLazyRoute = AboutLazyImport.update({
   path: '/about',
@@ -55,6 +61,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutLazyImport
       parentRoute: typeof rootRoute
     }
+    '/hospital-bag': {
+      preLoaderRoute: typeof HospitalBagLazyImport
+      parentRoute: typeof rootRoute
+    }
     '/settings': {
       preLoaderRoute: typeof SettingsLazyImport
       parentRoute: typeof rootRoute
@@ -71,6 +81,7 @@ declare module '@tanstack/react-router' {
 export const routeTree = rootRoute.addChildren([
   IndexLazyRoute,
   AboutLazyRoute,
+  HospitalBagLazyRoute,
   SettingsLazyRoute,
   TimelineLazyRoute,
 ])
