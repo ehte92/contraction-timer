@@ -1,5 +1,10 @@
-import { useEffect, useState } from "react";
-import Layout from "./layout/Layout";
+import { createLazyFileRoute } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import useStore from "../store/contractionStore";
+
+export const Route = createLazyFileRoute("/")({
+  component: Index,
+});
 
 interface Timer {
   hours: number;
@@ -12,7 +17,7 @@ interface Contraction {
   duration: string;
 }
 
-function App() {
+function Index() {
   const [timer, setTimer] = useState<Timer>({
     hours: 0,
     minutes: 0,
@@ -20,10 +25,11 @@ function App() {
   });
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [startTime, setStartTime] = useState<number | null>(null);
-  const [contractions, setContractions] = useState<Contraction[]>([]);
   const [currentContractionStart, setCurrentContractionStart] = useState<
     number | null
   >(null);
+
+  const { contractions, addContraction } = useStore();
 
   useEffect(() => {
     let interval: number | undefined = undefined;
@@ -68,10 +74,7 @@ function App() {
       } seconds`;
 
       // Add the new contraction log
-      setContractions((prevContractions) => [
-        { time: startTimeFormatted, duration: durationFormatted },
-        ...prevContractions,
-      ]);
+      addContraction({ time: startTimeFormatted, duration: durationFormatted });
 
       setIsRunning(false);
       setCurrentContractionStart(null); // Reset the start time
@@ -182,9 +185,8 @@ function App() {
   };
 
   const averageInterval = calculateAverageInterval(contractions);
-
   return (
-    <Layout>
+    <div className="flex flex-col justify-between h-screen">
       <div className="container mx-auto px-4">
         <h1 className="text-2xl font-bold">Contraction Timer</h1>
         {/* Timer */}
@@ -218,29 +220,6 @@ function App() {
           </div>
         </div>
         {/* Timer */}
-
-        {/* Button */}
-        <div className="flex justify-center items-center mt-4">
-          <div className="flex justify-between space-x-2 w-full">
-            {/* Start button */}
-            <button
-              className="btn btn-primary w-1/2"
-              onClick={startTimer}
-              disabled={isRunning}
-            >
-              Start
-            </button>
-            {/* Stop button */}
-            <button
-              className="btn btn-secondary w-1/2"
-              onClick={stopTimer}
-              disabled={!isRunning}
-            >
-              Stop
-            </button>
-          </div>
-        </div>
-        {/* Button */}
 
         {/* Info */}
         <div className="mt-4">
@@ -279,45 +258,19 @@ function App() {
           </div>
         </div>
         {/* Info */}
-
-        {/* Timeline */}
-        {contractions.length > 0 && (
-          <div className="mt-4 h-96 overflow-auto">
-            <ul className="timeline timeline-snap-icon max-md:timeline-compact timeline-vertical">
-              {contractions.map((contraction, index) => (
-                <li key={index} className="timeline-item">
-                  <div className="timeline-middle">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      className="w-5 h-5"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <div className="timeline-end timeline-box">
-                    <time className="text-sm text-secondary">
-                      {contraction.time}
-                    </time>
-                    <p className="text-md font-semibold text-primary">
-                      {contraction.duration}
-                    </p>
-                  </div>
-                  {index !== contractions.length - 1 && <hr />}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {/* Timeline */}
       </div>
-    </Layout>
+      {/* Button */}
+      <div className="flex justify-center items-center mt-4 mb-56">
+        <button
+          className={`btn ${isRunning ? "btn-secondary" : "btn-primary"} w-32 h-32 rounded-full text-xl animate-breathing`}
+          onClick={() => {
+            isRunning ? stopTimer() : startTimer();
+          }}
+        >
+          {isRunning ? "Stop" : "Start"}
+        </button>
+      </div>
+      {/* Button */}
+    </div>
   );
 }
-
-export default App;

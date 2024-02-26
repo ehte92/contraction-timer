@@ -1,7 +1,19 @@
+import { useNavigate, useRouterState } from "@tanstack/react-router";
+
 const BottomNav = () => {
+  const navigate = useNavigate();
+  const router = useRouterState();
+
+  const isActive = (path: string) => {
+    return router.location.pathname === path ? "active text-primary" : "";
+  };
+
   return (
     <div className="btm-nav btm-nav-md">
-      <button className="active text-primary">
+      <button
+        className={`${isActive("/")}`}
+        onClick={() => navigate({ to: "/" })}
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -18,7 +30,10 @@ const BottomNav = () => {
         </svg>
         <span className="btm-nav-label">Home</span>
       </button>
-      <button>
+      <button
+        className={`${isActive("/timeline")}`}
+        onClick={() => navigate({ to: "/timeline" })}
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
