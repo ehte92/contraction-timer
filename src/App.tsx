@@ -83,56 +83,105 @@ function App() {
     return value.toString().padStart(2, "0");
   };
 
+  const parseLasHourTime = (timeString: string): number => {
+    const [hoursMinutes, period] = timeString.split(" ");
+    let hours = parseInt(hoursMinutes.split(":")[0], 10);
+    const minutes = parseInt(hoursMinutes.split(":")[1], 10);
+    const seconds = parseInt(hoursMinutes.split(":")[2], 10);
+
+    // Adjust hours for 12-hour format
+    if (period === "PM" && hours < 12) hours += 12;
+    if (period === "AM" && hours === 12) hours = 0;
+
+    // Since minutes and seconds are not reassigned, we can declare them with `const`
+    const date = new Date();
+    date.setHours(hours, minutes, seconds, 0);
+
+    return date.getTime();
+  };
+
   // Calculate number of contractions in the last hour
   const contractionsLastHour = contractions.filter((contraction) => {
     const currentTime = Date.now();
-    const contractionTime = new Date();
-    const [hours, minutes, seconds] = contraction.time.split(":").map(Number);
-    contractionTime.setHours(hours);
-    contractionTime.setMinutes(minutes);
-    contractionTime.setSeconds(seconds);
-    return currentTime - contractionTime.getTime() < 3600000; // 1000 * 60 * 60 milliseconds = 1 hour
+    const contractionTime = new Date(parseLasHourTime(contraction.time)); // Ensure this parses correctly
+
+    // Check if the contraction occurred in the last hour
+    return currentTime - contractionTime.getTime() < 3600000; // 3600000 milliseconds = 1 hour
   });
 
   // Calculate average duration of contractions
   const averageDuration =
-    contractions.reduce((total, contraction) => {
-      const durationParts = contraction.duration.split(" ");
-      const durationMinutes = parseInt(durationParts[0]);
-      const durationSeconds = parseInt(durationParts[2]);
-      return total + (durationMinutes * 60 + durationSeconds);
-    }, 0) / contractions.length;
+    contractions.length > 0
+      ? contractions.reduce((total, contraction) => {
+          const durationParts = contraction.duration.split(" ");
+          const durationMinutes = parseInt(durationParts[0]);
+          const durationSeconds = parseInt(durationParts[2]);
+          return total + durationMinutes * 60 + durationSeconds;
+        }, 0) / contractions.length
+      : 0; // Return 0 if no contractions
 
   // Format average duration for display
   const formatAverageDuration = (duration: number): string => {
+    if (duration === 0) {
+      return "0:00"; // Or "N/A" or any placeholder you find suitable
+    }
     const minutes = Math.floor(duration / 60);
     const seconds = Math.floor(duration % 60);
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  const calculateAverageFrequency = () => {
-    if (contractions.length <= 1) {
-      return 0; // Return 0 if there's only one or no contractions
-    }
+  const calculateAverageInterval = (
+    contractions: Contraction[]
+  ): string | null => {
+    if (contractions.length < 2) return null; // Need at least two contractions to calculate intervals
 
-    const timeDifferences = contractions.slice(1).map((contraction, index) => {
-      const currentTime = new Date(contraction.time).getTime();
-      const previousTime = new Date(contractions[index].time).getTime();
-      return currentTime - previousTime;
-    });
+    // Parse each contraction time to milliseconds
+    const timesInMs = contractions.map((contraction) =>
+      parseTime(contraction.time)
+    );
 
-    const averageTimeDifference =
-      timeDifferences.reduce((acc, cur) => acc + cur, 0) /
-      timeDifferences.length;
+    // Sort times in ascending order to ensure correct interval calculation
+    timesInMs.sort((a, b) => a - b);
 
-    // Convert milliseconds to hours for frequency
-    const averageFrequency = (3600000 / averageTimeDifference).toFixed(2);
+    // Calculate intervals between consecutive contractions
+    const intervals = timesInMs
+      .slice(1)
+      .map((time, index) => time - timesInMs[index]);
 
-    return averageFrequency;
+    // Compute the average of these intervals
+    const averageIntervalMs =
+      intervals.reduce((acc, interval) => acc + interval, 0) / intervals.length;
+
+    // Convert milliseconds to minutes and seconds
+    const averageIntervalMinutes = Math.floor(averageIntervalMs / 60000);
+    const averageIntervalSeconds = Math.floor(
+      (averageIntervalMs % 60000) / 1000
+    );
+
+    // Format the average interval as M:SS
+    const formattedAverageInterval = `${averageIntervalMinutes}:${averageIntervalSeconds
+      .toString()
+      .padStart(2, "0")}`;
+
+    return formattedAverageInterval;
   };
 
-  // Then use this function to set the averageFrequency
-  const averageFrequency = calculateAverageFrequency();
+  const parseTime = (timeString: string): number => {
+    const [time, modifier] = timeString.split(" ");
+    let hours = parseInt(time.split(":")[0], 10);
+    const minutes = parseInt(time.split(":")[1], 10);
+    const seconds = parseInt(time.split(":")[2], 10);
+
+    if (hours === 12) hours = 0; // Handle 12 AM and 12 PM
+    if (modifier === "PM") hours += 12;
+
+    // Assuming the current date for all times to calculate the timestamp
+    const date = new Date();
+    date.setHours(hours, minutes, seconds, 0);
+    return date.getTime();
+  };
+
+  const averageInterval = calculateAverageInterval(contractions);
 
   return (
     <Layout>
@@ -210,22 +259,20 @@ function App() {
               {/* Item 2: Avg Duration */}
               <div className="text-center">
                 <div className="text-md font-semibold text-primary">
-                  Avg Duration
+                  Duration
                 </div>
                 <div className="text-sm text-secondary">
                   {formatAverageDuration(averageDuration)}
                 </div>
               </div>
 
-              {/* Item 3: Avg Frequency */}
+              {/* Item 3: Avg Interval */}
               <div className="text-center">
                 <div className="text-md font-semibold text-primary">
-                  Avg Freq
+                  Interval
                 </div>
                 <div className="text-sm text-secondary">
-                  {typeof averageFrequency === "number" && averageFrequency > 0
-                    ? `${averageFrequency} per hour`
-                    : "-"}
+                  {averageInterval ? averageInterval : "0:00"}
                 </div>
               </div>
             </div>
