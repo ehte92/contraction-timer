@@ -11,9 +11,9 @@ export default defineConfig({
     VitePWA({
       registerType: "prompt",
       // add this to cache all the imports
-      workbox: {
-        globPatterns: ["**/*.{js,css,html}", "**/*.{svg,png,jpg,gif}"],
-      },
+      // workbox: {
+      //   globPatterns: ["**/*.{js,css,html}", "**/*.{svg,png,jpg,gif}"],
+      // },
       // add this to cache all the
       // static assets in the public folder
       includeAssets: ["**/*"],
