@@ -12,7 +12,7 @@ export default defineConfig({
       registerType: "prompt",
       // add this to cache all the imports
       workbox: {
-        globPatterns: ["**/*"],
+        globPatterns: ["**/*.{js,css,html}", "**/*.{svg,png,jpg,gif}"],
       },
       // add this to cache all the
       // static assets in the public folder
