@@ -9,6 +9,7 @@ export default defineConfig({
     react(),
     TanStackRouterVite(),
     VitePWA({
+      registerType: "prompt",
       // add this to cache all the imports
       workbox: {
         globPatterns: ["**/*"],
@@ -17,14 +18,15 @@ export default defineConfig({
       // static assets in the public folder
       includeAssets: ["**/*"],
       manifest: {
-        theme_color: "#f69435",
-        background_color: "#f69435",
+        theme_color: "#171717",
+        background_color: "#f0e7db",
         display: "standalone",
         scope: "/",
         start_url: "/",
-        short_name: "vite test",
-        description: "testing vite pwa",
-        name: "vite test",
+        orientation: "portrait",
+        short_name: "contraction-timer",
+        description: "A simple contraction timer",
+        name: "Contraction Timer",
         icons: [
           {
             src: "/android-chrome-192x192.png",
