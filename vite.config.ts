@@ -9,11 +9,11 @@ export default defineConfig({
     react(),
     TanStackRouterVite(),
     VitePWA({
-      registerType: "prompt",
+      registerType: "autoUpdate",
       // add this to cache all the imports
-      // workbox: {
-      //   globPatterns: ["**/*.{js,css,html}", "**/*.{svg,png,jpg,gif}"],
-      // },
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
+      },
       // add this to cache all the
       // static assets in the public folder
       includeAssets: ["**/*"],
